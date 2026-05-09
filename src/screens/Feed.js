@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
 import { fetchEvents, searchEvents } from '../services/api';
@@ -8,14 +8,13 @@ const Feed = () => {
     const [search, setSearch] = useState('');
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false); // Yeni state
 
     useEffect(() => {
-        // Debounce: Kullanıcı yazmayı bıraktıktan 500ms sonra çalışır
         const delayDebounceFn = setTimeout(async () => {
             setLoading(true);
             if (search.trim() === '') {
-                const data = await fetchEvents();
-                setEvents(data);
+                await loadEvents();
             } else {
                 const data = await searchEvents(search);
                 setEvents(data);
@@ -23,9 +22,22 @@ const Feed = () => {
             setLoading(false);
         }, 500);
 
-        // Temizleme (Cleanup): Kullanıcı 500ms dolmadan yeni harf girerse eski sayacı iptal eder
         return () => clearTimeout(delayDebounceFn);
-    }, [search]); // search state'i her değiştiğinde bu useEffect tetiklenir
+    }, [search]);
+
+    // Sayfayı ilk açılışta veya yenilemede dolduracak fonksiyon
+    const loadEvents = async () => {
+        const data = await fetchEvents();
+        setEvents(data);
+    };
+
+    // Kullanıcı aşağı çektiğinde çalışacak fonksiyon
+    const onRefresh = useCallback(async () => {
+        setRefreshing(true);
+        setSearch(''); // Yenileme yapınca aramayı da sıfırlayalım
+        await loadEvents();
+        setRefreshing(false);
+    }, []);
 
     return (
         <View style={styles.container}>
@@ -36,13 +48,22 @@ const Feed = () => {
                 onChangeText={setSearch}
             />
 
-            {loading ? (
+            {loading && !refreshing ? ( // Aşağı çekerek yenileme sırasında ortadaki loader dönmesin diye
                 <ActivityIndicator size="large" color={COLORS.cardBackground} style={styles.loader} />
             ) : (
                 <FlatList
                     data={events}
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.listContainer}
+                    // Pull to refresh özelliğini ekliyoruz
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={COLORS.cardBackground} // iOS loader rengi
+                            colors={[COLORS.cardBackground]} // Android loader rengi
+                        />
+                    }
                     renderItem={({ item }) => (
                         <EventCard
                             event={item}

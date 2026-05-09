@@ -1,17 +1,25 @@
-import React, { useState } from 'react';
-import { View, TextInput, FlatList, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
+import { fetchEvents } from '../services/api';
 
 const Feed = () => {
     const [search, setSearch] = useState('');
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Tasarımdaki sıraya ve verilere göre güncellenmiş sahte liste
-    const dummyData = [
-        { id: 1, title: 'Yapay Zeka Sanat Sergisi', category: 'Sanat', stock: 20, thumbnail: 'https://via.placeholder.com/150' },
-        { id: 2, title: 'Murat Boz Konseri', category: 'Müzik', stock: 0, thumbnail: 'https://via.placeholder.com/150' },
-        { id: 3, title: 'Basketbol Maçı', category: 'Spor', stock: 15, thumbnail: 'https://via.placeholder.com/150' },
-    ];
+    // Ekran ilk açıldığında API'den verileri çeker
+    useEffect(() => {
+        loadEvents();
+    }, []);
+
+    const loadEvents = async () => {
+        setLoading(true);
+        const data = await fetchEvents();
+        setEvents(data);
+        setLoading(false);
+    };
 
     return (
         <View style={styles.container}>
@@ -21,19 +29,25 @@ const Feed = () => {
                 value={search}
                 onChangeText={setSearch}
             />
-            <FlatList
-                data={dummyData}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                renderItem={({ item }) => (
-                    <EventCard
-                        event={item}
-                        isFavorite={false}
-                        onPress={() => console.log('Detaya git')}
-                        onFavorite={() => console.log('Favoriye tıklandı')}
-                    />
-                )}
-            />
+
+            {/* Veriler yüklenirken ekranda dönen yükleniyor ikonu gösterir */}
+            {loading ? (
+                <ActivityIndicator size="large" color={COLORS.cardBackground} style={styles.loader} />
+            ) : (
+                <FlatList
+                    data={events}
+                    keyExtractor={(item) => item.id.toString()}
+                    contentContainerStyle={styles.listContainer}
+                    renderItem={({ item }) => (
+                        <EventCard
+                            event={item} // Artık API'den gelen gerçek title, category, stock ve thumbnail kullanılıyor
+                            isFavorite={false}
+                            onPress={() => console.log('Detaya git:', item.id)}
+                            onFavorite={() => console.log('Favoriye tıklandı:', item.id)}
+                        />
+                    )}
+                />
+            )}
         </View>
     );
 };
@@ -51,6 +65,12 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         paddingHorizontal: SIZES.padding,
+        paddingBottom: 20,
+    },
+    loader: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     }
 });
 

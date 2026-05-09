@@ -1,25 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, TextInput, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
-import { fetchEvents } from '../services/api';
+import { fetchEvents, searchEvents } from '../services/api';
 
 const Feed = () => {
     const [search, setSearch] = useState('');
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Ekran ilk açıldığında API'den verileri çeker
     useEffect(() => {
-        loadEvents();
-    }, []);
+        // Debounce: Kullanıcı yazmayı bıraktıktan 500ms sonra çalışır
+        const delayDebounceFn = setTimeout(async () => {
+            setLoading(true);
+            if (search.trim() === '') {
+                const data = await fetchEvents();
+                setEvents(data);
+            } else {
+                const data = await searchEvents(search);
+                setEvents(data);
+            }
+            setLoading(false);
+        }, 500);
 
-    const loadEvents = async () => {
-        setLoading(true);
-        const data = await fetchEvents();
-        setEvents(data);
-        setLoading(false);
-    };
+        // Temizleme (Cleanup): Kullanıcı 500ms dolmadan yeni harf girerse eski sayacı iptal eder
+        return () => clearTimeout(delayDebounceFn);
+    }, [search]); // search state'i her değiştiğinde bu useEffect tetiklenir
 
     return (
         <View style={styles.container}>
@@ -30,7 +36,6 @@ const Feed = () => {
                 onChangeText={setSearch}
             />
 
-            {/* Veriler yüklenirken ekranda dönen yükleniyor ikonu gösterir */}
             {loading ? (
                 <ActivityIndicator size="large" color={COLORS.cardBackground} style={styles.loader} />
             ) : (
@@ -40,7 +45,7 @@ const Feed = () => {
                     contentContainerStyle={styles.listContainer}
                     renderItem={({ item }) => (
                         <EventCard
-                            event={item} // Artık API'den gelen gerçek title, category, stock ve thumbnail kullanılıyor
+                            event={item}
                             isFavorite={false}
                             onPress={() => console.log('Detaya git:', item.id)}
                             onFavorite={() => console.log('Favoriye tıklandı:', item.id)}

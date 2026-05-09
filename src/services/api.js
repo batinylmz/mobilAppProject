@@ -11,3 +11,14 @@ export const fetchEvents = async () => {
         return [];
     }
 };
+
+export const searchEvents = async (query) => {
+    try {
+        const response = await fetch(`${BASE_URL}/products/search?q=${query}`);
+        const data = await response.json();
+        return data.products;
+    } catch (error) {
+        console.error("Arama yapılırken hata oluştu:", error);
+        return [];
+    }
+};

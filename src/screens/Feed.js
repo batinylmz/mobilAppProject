@@ -52,6 +52,15 @@ const Feed = () => {
         }
     };
 
+    // Arama filtresini uyguluyoruz
+    const filteredEvents = events.filter(event => {
+        // Hem başlıkta hem de kategoride arama yapması daha kullanışlı olur
+        const titleMatch = event.title.toLowerCase().includes(search.toLowerCase());
+        const categoryMatch = event.category?.toLowerCase().includes(search.toLowerCase());
+
+        return titleMatch || categoryMatch;
+    });
+
     return (
         <View style={styles.container}>
             {/* Üst Header Alanı (Figma Grup 15) */}
@@ -98,11 +107,15 @@ const Feed = () => {
                 <ActivityIndicator size="large" color={COLORS.cardBackground} style={styles.loader} />
             ) : (
                 <FlatList
-                    data={events}
+                    data={filteredEvents} // Filtrelenmiş listeyi buraya bağladık
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.listContainer}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.cardBackground} />
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={COLORS.cardBackground}
+                        />
                     }
                     renderItem={({ item }) => {
                         // Etkinlik favoriler dizisinde var mı kontrol et
@@ -117,6 +130,19 @@ const Feed = () => {
                             />
                         );
                     }}
+                    // Arama sonucunda hiçbir şey bulunamazsa bu kısım çalışır
+                    ListEmptyComponent={() => (
+                        <View style={{ marginTop: 50, alignItems: 'center', paddingHorizontal: 20 }}>
+                            <Text style={{
+                                color: COLORS.black,
+                                fontSize: 16,
+                                textAlign: 'center',
+                                fontStyle: 'italic'
+                            }}>
+                                "{search}" ile ilgili bir etkinlik bulunamadı...
+                            </Text>
+                        </View>
+                    )}
                 />
             )}
         </View>

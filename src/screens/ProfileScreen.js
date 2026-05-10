@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react';
 import {
+  FlatList,
   Image,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -148,12 +148,30 @@ function ProfileScreen({ navigation }) {
     </View>
   );
 
+  const renderPlaceholderRow = ({ item }) => (
+    <View style={styles.placeholderRow}>
+      <Text style={styles.placeholderTitle} numberOfLines={1}>
+        {item.title}
+      </Text>
+      <Text style={styles.placeholderMeta}>{formatEventDate(item.date)}</Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
-        {Header}
-        <Text style={styles.empty}>Kayıtlı etkinlik listesi sonraki committe eklenecek.</Text>
-      </ScrollView>
+      <FlatList
+        data={registrations}
+        keyExtractor={(item) => String(item.id)}
+        ListHeaderComponent={Header}
+        ListEmptyComponent={
+          <Text style={styles.empty}>
+            Henüz kayıtlı etkinliğiniz yok.
+          </Text>
+        }
+        renderItem={renderPlaceholderRow}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+      />
     </SafeAreaView>
   );
 }
@@ -201,6 +219,15 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: P.text },
   seeAll: { fontSize: 14, fontWeight: '600', color: P.accentLink },
+  placeholderRow: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
+    borderRadius: 12,
+    backgroundColor: P.statBg,
+  },
+  placeholderTitle: { fontSize: 15, fontWeight: '700', color: P.text },
+  placeholderMeta: { fontSize: 12, color: P.muted, marginTop: 4 },
   empty: {
     textAlign: 'center',
     color: P.muted,

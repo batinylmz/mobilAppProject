@@ -2,25 +2,28 @@ import React, { useContext } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
-// Context'i import et
+import { Ionicons } from '@expo/vector-icons';
+
 import { EventContext } from '../context/EventContext';
 
 const Favorites = () => {
     // API kullanmıyoruz, sadece Context'teki favorileri ve silme fonksiyonunu çekiyoruz
     const { favorites, removeFavorite } = useContext(EventContext);
 
-    // Eğer favori dizisi boşsa gösterilecek ekran (Empty State)
     if (favorites.length === 0) {
         return (
             <View style={styles.emptyContainer}>
+                <Ionicons name="alert-circle-outline" size={60} color={COLORS.primary} style={{ marginBottom: 15 }} />
                 <Text style={styles.emptyText}>Henüz favori eklemediniz</Text>
             </View>
         );
     }
 
+
     // Favoriler varsa listele
     return (
         <View style={styles.container}>
+
             <FlatList
                 data={favorites}
                 keyExtractor={(item) => item.id.toString()}

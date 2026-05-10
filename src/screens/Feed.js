@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, RefreshControl,Image } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
 import { fetchEvents, searchEvents } from '../services/api';
@@ -54,18 +54,38 @@ const Feed = () => {
 
     return (
         <View style={styles.container}>
+            {/* Üst Header Alanı (Figma Grup 15) */}
+            <View style={{
+                width: '100%',
+                height: 49,
+                backgroundColor: '#280306', // Tam Figma renk kodun
+                flexDirection: 'row',
+                alignItems: 'center'
+            }}>
+                <Image
+                    source={require('../../assets/logo.png')}
+                    style={{
+                        width: 80, // Figma Frame 18 genişliği
+                        height: 49, // Header yüksekliği ile tam uyumlu
+                    }}
+                    resizeMode="contain"
+                />
+            </View>
 
+            {/* Slogan Alanı */}
             <Text style={{
                 fontSize: 18,
                 fontStyle: 'italic',
                 fontWeight: '600',
-                color: COLORS.primary,
+                color: COLORS.primary, // theme.js'den gelen ana kırmızın
                 textAlign: 'center',
-                marginTop: 10,
-                marginBottom: 5
+                marginTop: 15,
+                marginBottom: 10
             }}>
                 Infinite Events, One Loop
             </Text>
+
+
 
             <TextInput
                 style={styles.searchInput}

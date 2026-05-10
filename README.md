@@ -1,2 +1,12 @@
 # mobilAppProject
-A robust React Native application utilizing Context API for global state management and DummyJSON for dynamic data sourcing. Features high-fidelity UI synchronization across Feed, Detail, and Favorites modules with a focus on clean architecture.
+
+React Native (Expo) EventHub uygulaması: Context API, etkinlik listesi, detay, favoriler ve profil.
+
+## Çalıştırma
+
+```bash
+npm install
+npx expo start
+```
+
+Takım dalı: `batin-dev`. Hasan katkısı: `hasan/eventhub` ile birleştirilmiş sürüm `hasan/eventhub-on-batin` üzerinden PR.

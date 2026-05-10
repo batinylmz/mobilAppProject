@@ -1,0 +1,32 @@
+{
+  "name": "my-app",
+  "main": "app.js",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "android:rebuild": "cd android && ./gradlew --stop 2>/dev/null; rm -rf app/build build && cd .. && expo run:android",
+    "ios": "expo run:ios",
+    "ios:pods": "cd ios && pod install --no-repo-update",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@react-navigation/native": "^7.2.2",
+    "@react-navigation/native-stack": "^7.14.12",
+    "@types/react": "~19.1.10",
+    "expo": "~54.0.33",
+    "expo-splash-screen": "~31.0.13",
+    "expo-status-bar": "~3.0.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0",
+    "react-native-web": "^0.21.0"
+  },
+  "private": true,
+  "devDependencies": {
+    "@expo/ngrok": "^4.1.3",
+    "typescript": "~5.9.2"
+  }
+}

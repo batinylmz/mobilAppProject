@@ -1,44 +1,115 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useCallback, useMemo, useState } from 'react';
+import { getEvents } from '../services/eventService';
 
 export const EventContext = createContext();
 
 export const EventProvider = ({ children }) => {
-    const [events, setEvents] = useState([]);
-    const [favorites, setFavorites] = useState([]); // Favori etkinlikleri tutacak dizi
-    const [registrations, setRegistrations] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    // Favorilere ekleme fonksiyonu
-    const addFavorite = (event) => {
-        setFavorites((prev) => {
-            // Eğer zaten favorilerde varsa ekleme
-            if (prev.some((fav) => fav.id === event.id)) return prev;
-            return [...prev, event];
-        });
-    };
+  const fetchEvents = useCallback(async (query = '') => {
+    setLoading(true);
+    setError('');
+    try {
+      const nextEvents = await getEvents(query);
+      setEvents(nextEvents);
+    } catch (e) {
+      setError('Etkinlikler yüklenemedi.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-    // Favorilerden çıkarma fonksiyonu
-    const removeFavorite = (eventId) => {
-        setFavorites((prev) => prev.filter((fav) => fav.id !== eventId));
-    };
+  const isFavorite = useCallback(
+    (eventId) => favorites.some((item) => item.id === eventId),
+    [favorites]
+  );
 
-    // Kişi C'nin kullanacağı kayıt ve stok mantığı (Şimdilik boş kalabilir)
-    const register = (event) => {};
-    const updateStock = (eventId, changeAmount) => {};
+  const isRegistered = useCallback(
+    (eventId) => registrations.some((item) => item.id === eventId),
+    [registrations]
+  );
 
-    return (
-        <EventContext.Provider
-            value={{
-                events,
-                setEvents,
-                favorites,
-                registrations,
-                addFavorite,
-                removeFavorite,
-                register,
-                updateStock
-            }}
-        >
-            {children}
-        </EventContext.Provider>
-    );
+  const addFavorite = useCallback((eventItem) => {
+    setFavorites((prev) => {
+      if (prev.some((item) => item.id === eventItem.id)) {
+        return prev.filter((item) => item.id !== eventItem.id);
+      }
+      return [...prev, eventItem];
+    });
+  }, []);
+
+  const removeFavorite = useCallback((eventId) => {
+    setFavorites((prev) => prev.filter((item) => item.id !== eventId));
+  }, []);
+
+  const updateStock = useCallback((eventId, delta) => {
+    const updater = (list) =>
+      list.map((item) => {
+        if (item.id !== eventId) return item;
+        const nextStock = Math.max(0, (item.stock || 0) + delta);
+        return { ...item, stock: nextStock };
+      });
+    setEvents(updater);
+    setFavorites(updater);
+    setRegistrations(updater);
+  }, []);
+
+  const register = useCallback((eventItem) => {
+    setRegistrations((prev) => {
+      if (prev.some((item) => item.id === eventItem.id)) return prev;
+      return [...prev, eventItem];
+    });
+  }, []);
+
+  const unregister = useCallback((eventId) => {
+    setRegistrations((prev) => prev.filter((item) => item.id !== eventId));
+  }, []);
+
+  const resetEvents = useCallback(() => {
+    setEvents([]);
+    setFavorites([]);
+    setRegistrations([]);
+    setError('');
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      events,
+      favorites,
+      registrations,
+      loading,
+      error,
+      fetchEvents,
+      isFavorite,
+      isRegistered,
+      addFavorite,
+      removeFavorite,
+      register,
+      unregister,
+      updateStock,
+      resetEvents,
+    }),
+    [
+      events,
+      favorites,
+      registrations,
+      loading,
+      error,
+      fetchEvents,
+      isFavorite,
+      isRegistered,
+      addFavorite,
+      removeFavorite,
+      register,
+      unregister,
+      updateStock,
+      resetEvents,
+    ]
+  );
+
+  return <EventContext.Provider value={value}>{children}</EventContext.Provider>;
 };

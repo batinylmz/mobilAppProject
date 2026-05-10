@@ -1,6 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { AuthContext } from '../context/AuthContext';
+import { EventContext } from '../context/EventContext';
 
 /** Tasarım (Figma) ile uyumlu sabitler */
 const P = {
@@ -96,22 +105,108 @@ const avatarStyles = StyleSheet.create({
   },
 });
 
-function ProfileScreen() {
+function ProfileScreen({ navigation }) {
+  const { user, hydrateMe, token } = useContext(AuthContext);
+  const { registrations, favorites } = useContext(EventContext);
+
+  useEffect(() => {
+    if (token) hydrateMe();
+  }, [token, hydrateMe]);
+
+  const displayName =
+    user?.firstName || user?.lastName
+      ? [user?.firstName, user?.lastName].filter(Boolean).join(' ')
+      : user?.username || 'Kullanıcı';
+
+  const avatarUri = user?.image || user?.avatar || user?.profileImage;
+
+  const Header = (
+    <View style={styles.headerBlock}>
+      <View style={styles.avatarWrap}>
+        <ProfileAvatar uri={avatarUri} displayName={displayName} />
+      </View>
+      <Text style={styles.name}>{displayName}</Text>
+      <Text style={styles.email}>{user?.email || ''}</Text>
+
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Etkinlikler</Text>
+          <Text style={styles.statNum}>{registrations.length}</Text>
+        </View>
+        <View style={styles.statBox}>
+          <Text style={styles.statLabel}>Favoriler</Text>
+          <Text style={styles.statNum}>{favorites.length}</Text>
+        </View>
+      </View>
+
+      <View style={styles.sectionRow}>
+        <Text style={styles.sectionTitle}>Katıldığım Etkinlikler</Text>
+        <Pressable onPress={() => navigation.navigate('Feed')}>
+          <Text style={styles.seeAll}>Tümünü Gör</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.draftPad}>
-        <Text style={styles.draftTitle}>Profil ekranı</Text>
-        <Text style={styles.draftSub}>Yardımcılar ve avatar hazır; liste bir sonraki adımda.</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.listContent} showsVerticalScrollIndicator={false}>
+        {Header}
+        <Text style={styles.empty}>Kayıtlı etkinlik listesi sonraki committe eklenecek.</Text>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: P.pageBg },
-  draftPad: { padding: 24 },
-  draftTitle: { fontSize: 20, fontWeight: '700', color: P.text },
-  draftSub: { marginTop: 8, color: P.muted, fontSize: 14 },
+  listContent: { paddingHorizontal: 18, paddingBottom: 32 },
+  headerBlock: { alignItems: 'center', paddingTop: 8, marginBottom: 8 },
+  avatarWrap: { marginBottom: 16 },
+  name: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: P.text,
+    textAlign: 'center',
+  },
+  email: {
+    fontSize: 14,
+    color: P.muted,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+    marginBottom: 22,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: P.statBg,
+    borderRadius: P.statRadius,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  statLabel: { fontSize: 14, color: P.text, fontWeight: '600' },
+  statNum: { fontSize: 22, fontWeight: '700', color: P.text, marginTop: 4 },
+  sectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 14,
+  },
+  sectionTitle: { fontSize: 17, fontWeight: '700', color: P.text },
+  seeAll: { fontSize: 14, fontWeight: '600', color: P.accentLink },
+  empty: {
+    textAlign: 'center',
+    color: P.muted,
+    marginTop: 8,
+    paddingHorizontal: 12,
+  },
 });
 
 export default ProfileScreen;

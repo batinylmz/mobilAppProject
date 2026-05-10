@@ -54,6 +54,19 @@ const Feed = () => {
 
     return (
         <View style={styles.container}>
+
+            <Text style={{
+                fontSize: 18,
+                fontStyle: 'italic',
+                fontWeight: '600',
+                color: COLORS.primary,
+                textAlign: 'center',
+                marginTop: 10,
+                marginBottom: 5
+            }}>
+                Infinite Events, One Loop
+            </Text>
+
             <TextInput
                 style={styles.searchInput}
                 placeholder="Etkinlik ara..."

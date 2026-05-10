@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import EventImage from '../components/EventImage';
 import { AuthContext } from '../context/AuthContext';
 import { EventContext } from '../context/EventContext';
 
@@ -107,7 +108,8 @@ const avatarStyles = StyleSheet.create({
 
 function ProfileScreen({ navigation }) {
   const { user, hydrateMe, token } = useContext(AuthContext);
-  const { registrations, favorites } = useContext(EventContext);
+  const { registrations, favorites, unregister, updateStock } =
+    useContext(EventContext);
 
   useEffect(() => {
     if (token) hydrateMe();
@@ -148,12 +150,34 @@ function ProfileScreen({ navigation }) {
     </View>
   );
 
-  const renderPlaceholderRow = ({ item }) => (
-    <View style={styles.placeholderRow}>
-      <Text style={styles.placeholderTitle} numberOfLines={1}>
-        {item.title}
-      </Text>
-      <Text style={styles.placeholderMeta}>{formatEventDate(item.date)}</Text>
+  const renderEventCard = ({ item }) => (
+    <View style={styles.eventCard}>
+      <EventImage
+        uri={item.thumbnail}
+        fallbacks={item.thumbnailFallbacks}
+        lastResort={item.thumbnailLastResort}
+        style={styles.eventThumb}
+      />
+      <Pressable
+        style={styles.eventTextCol}
+        onPress={() => navigation.navigate('Detail', { eventId: item.id })}
+      >
+        <Text style={styles.eventTitle} numberOfLines={2}>
+          {item.title}
+        </Text>
+        <Text style={styles.eventDate}>{formatEventDate(item.date)}</Text>
+        <Text style={styles.eventQuota}>{kontenjanDurumu(item)}</Text>
+      </Pressable>
+      <Pressable
+        style={styles.trashBtn}
+        onPress={() => {
+          unregister(item.id);
+          updateStock(item.id, +1);
+        }}
+        accessibilityLabel="Etkinlikten çık"
+      >
+        <Text style={styles.trashIcon}>🗑</Text>
+      </Pressable>
     </View>
   );
 
@@ -168,7 +192,7 @@ function ProfileScreen({ navigation }) {
             Henüz kayıtlı etkinliğiniz yok.
           </Text>
         }
-        renderItem={renderPlaceholderRow}
+        renderItem={renderEventCard}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
@@ -219,15 +243,44 @@ const styles = StyleSheet.create({
   },
   sectionTitle: { fontSize: 17, fontWeight: '700', color: P.text },
   seeAll: { fontSize: 14, fontWeight: '600', color: P.accentLink },
-  placeholderRow: {
+  eventCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: P.cardBg,
+    borderRadius: 16,
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    marginBottom: 8,
-    borderRadius: 12,
-    backgroundColor: P.statBg,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+    gap: 10,
   },
-  placeholderTitle: { fontSize: 15, fontWeight: '700', color: P.text },
-  placeholderMeta: { fontSize: 12, color: P.muted, marginTop: 4 },
+  eventThumb: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+  },
+  eventTextCol: { flex: 1, minWidth: 0 },
+  eventTitle: {
+    color: P.cardText,
+    fontWeight: '700',
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  eventDate: {
+    color: P.cardMuted,
+    fontSize: 12,
+    marginTop: 4,
+  },
+  eventQuota: {
+    color: P.cardMuted,
+    fontSize: 12,
+    marginTop: 2,
+  },
+  trashBtn: {
+    padding: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  trashIcon: { fontSize: 22 },
   empty: {
     textAlign: 'center',
     color: P.muted,

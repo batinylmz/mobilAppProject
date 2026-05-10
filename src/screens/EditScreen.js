@@ -35,8 +35,21 @@ function formatDate(iso) {
 
 function EditScreen({ route, navigation }) {
   const { eventId } = route.params;
-  const { events, favorites, registrations } = useContext(EventContext);
+  const { events, favorites, registrations, isFavorite, isRegistered, addFavorite, register, unregister, updateStock } = useContext(EventContext);
+
   const event = [...events, ...favorites, ...registrations].find((item) => item.id === eventId);
+
+  const handleRegister = () => {
+    if (!event || event.stock <= 0 || isRegistered(event.id)) return;
+    register(event);
+    updateStock(event.id, -1);
+  };
+
+  const handleUnregister = () => {
+    if (!event || !isRegistered(event.id)) return;
+    unregister(event.id);
+    updateStock(event.id, +1);
+  };
 
   if (!event) {
     return (
@@ -51,6 +64,8 @@ function EditScreen({ route, navigation }) {
     );
   }
 
+  const registered = isRegistered(event.id);
+  const soldOut = event.stock <= 0;
   const eventDate = formatDate(event.date);
   const priceText = Number(event.price) > 0 ? `$${event.price}` : 'Ücretsiz';
 
@@ -86,6 +101,26 @@ function EditScreen({ route, navigation }) {
           <Text style={styles.descriptionTitle}>Açıklama</Text>
           <Text style={styles.description}>{event.description || 'Bu etkinlik için açıklama bulunmuyor.'}</Text>
         </View>
+
+        <Pressable style={styles.favoriteBtn} onPress={() => addFavorite(event)}>
+          <Text style={styles.favoriteBtnText}>
+            {isFavorite(event.id) ? 'Favoriden Çıkar' : 'Favorilere Ekle'}
+          </Text>
+        </Pressable>
+
+        {!registered ? (
+          <Pressable
+            style={[styles.primaryBtn, soldOut && styles.disabled]}
+            onPress={handleRegister}
+            disabled={soldOut}
+          >
+            <Text style={styles.primaryBtnText}>{soldOut ? 'Kontenjan Doldu' : 'Kayıt Ol'}</Text>
+          </Pressable>
+        ) : (
+          <Pressable style={styles.cancelBtn} onPress={handleUnregister}>
+            <Text style={styles.primaryBtnText}>Kayıt İptal Et</Text>
+          </Pressable>
+        )}
 
         <Pressable style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
           <Text style={styles.secondaryBtnText}>Geri Dön</Text>
@@ -159,6 +194,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 21,
   },
+  favoriteBtn: {
+    marginTop: 14,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: P.statBg,
+  },
+  favoriteBtnText: {
+    color: P.accentLink,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  primaryBtn: {
+    marginTop: 10,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: P.primary,
+  },
+  cancelBtn: {
+    marginTop: 10,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: P.danger,
+  },
+  primaryBtnText: {
+    color: P.primaryText,
+    fontSize: 15,
+    fontWeight: '700',
+  },
   secondaryBtn: {
     marginTop: 10,
     borderRadius: 14,
@@ -173,6 +239,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  disabled: { opacity: 0.6 },
   notFoundWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
   notFoundTitle: { color: P.text, fontSize: 22, fontWeight: '700', marginBottom: 16, textAlign: 'center' },
 });

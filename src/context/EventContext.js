@@ -21,9 +21,43 @@ export const EventProvider = ({ children }) => {
         setFavorites((prev) => prev.filter((fav) => fav.id !== eventId));
     };
 
-    // Kişi C'nin kullanacağı kayıt ve stok mantığı (Şimdilik boş kalabilir)
-    const register = (event) => {};
-    const updateStock = (eventId, changeAmount) => {};
+    /** Kayıtlı etkinliklere ekle (aynı etkinlik iki kez eklenmez) */
+    const register = (event) => {
+        if (!event || event.id == null) return;
+        setRegistrations((prev) => {
+            if (prev.some((r) => r.id === event.id)) return prev;
+            return [...prev, { ...event }];
+        });
+    };
+
+    /** Kayıttan çıkar */
+    const unregister = (eventId) => {
+        setRegistrations((prev) => prev.filter((r) => r.id !== eventId));
+    };
+
+    /**
+     * Kalan kontenjanı güncelle (kayıtta -1, iptalde +1).
+     * events / favorites / registrations içindeki aynı id güncellenir.
+     */
+    const updateStock = (eventId, changeAmount) => {
+        const bump = (item) => {
+            if (item.id !== eventId) return item;
+            const cur = item.stock ?? 0;
+            let next = Math.max(0, cur + changeAmount);
+            const cap = item.capacityTotal;
+            if (typeof cap === 'number' && cap > 0) {
+                next = Math.min(cap, next);
+            }
+            return { ...item, stock: next };
+        };
+
+        setEvents((prev) => prev.map(bump));
+        setFavorites((prev) => prev.map(bump));
+        setRegistrations((prev) => prev.map(bump));
+    };
+
+    const isFavorite = (eventId) => favorites.some((f) => f.id === eventId);
+    const isRegistered = (eventId) => registrations.some((r) => r.id === eventId);
 
     return (
         <EventContext.Provider
@@ -35,7 +69,10 @@ export const EventProvider = ({ children }) => {
                 addFavorite,
                 removeFavorite,
                 register,
-                updateStock
+                unregister,
+                updateStock,
+                isFavorite,
+                isRegistered,
             }}
         >
             {children}

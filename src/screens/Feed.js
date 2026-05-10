@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, RefreshControl,Image } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
 import { fetchEvents, searchEvents } from '../services/api';
@@ -52,8 +52,50 @@ const Feed = () => {
         }
     };
 
+    // Arama filtresini uyguluyoruz
+    const filteredEvents = events.filter(event => {
+        // Hem başlıkta hem de kategoride arama yapması daha kullanışlı olur
+        const titleMatch = event.title.toLowerCase().includes(search.toLowerCase());
+        const categoryMatch = event.category?.toLowerCase().includes(search.toLowerCase());
+
+        return titleMatch || categoryMatch;
+    });
+
     return (
         <View style={styles.container}>
+            {/* Üst Header Alanı (Figma Grup 15) */}
+            <View style={{
+                width: '100%',
+                height: 49,
+                backgroundColor: '#280306', // Tam Figma renk kodun
+                flexDirection: 'row',
+                alignItems: 'center'
+            }}>
+                <Image
+                    source={require('../../assets/logo.png')}
+                    style={{
+                        width: 80, // Figma Frame 18 genişliği
+                        height: 49, // Header yüksekliği ile tam uyumlu
+                    }}
+                    resizeMode="contain"
+                />
+            </View>
+
+            {/* Slogan Alanı */}
+            <Text style={{
+                fontSize: 18,
+                fontStyle: 'italic',
+                fontWeight: '600',
+                color: COLORS.primary, // theme.js'den gelen ana kırmızın
+                textAlign: 'center',
+                marginTop: 15,
+                marginBottom: 10
+            }}>
+                Infinite Events, One Loop
+            </Text>
+
+
+
             <TextInput
                 style={styles.searchInput}
                 placeholder="Etkinlik ara..."
@@ -65,11 +107,15 @@ const Feed = () => {
                 <ActivityIndicator size="large" color={COLORS.cardBackground} style={styles.loader} />
             ) : (
                 <FlatList
-                    data={events}
+                    data={filteredEvents} // Filtrelenmiş listeyi buraya bağladık
                     keyExtractor={(item) => item.id.toString()}
                     contentContainerStyle={styles.listContainer}
                     refreshControl={
-                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.cardBackground} />
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={COLORS.cardBackground}
+                        />
                     }
                     renderItem={({ item }) => {
                         // Etkinlik favoriler dizisinde var mı kontrol et
@@ -84,6 +130,19 @@ const Feed = () => {
                             />
                         );
                     }}
+                    // Arama sonucunda hiçbir şey bulunamazsa bu kısım çalışır
+                    ListEmptyComponent={() => (
+                        <View style={{ marginTop: 50, alignItems: 'center', paddingHorizontal: 20 }}>
+                            <Text style={{
+                                color: COLORS.black,
+                                fontSize: 16,
+                                textAlign: 'center',
+                                fontStyle: 'italic'
+                            }}>
+                                "{search}" ile ilgili bir etkinlik bulunamadı...
+                            </Text>
+                        </View>
+                    )}
                 />
             )}
         </View>

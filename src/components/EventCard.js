@@ -31,8 +31,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         backgroundColor: COLORS.cardBackground,
         borderRadius: SIZES.radius,
+        height: 78,      // Kartın kendi yüksekliği
+        marginBottom: 12, // Alt boşluk (Toplam: 90 birim)
         padding: 10,
-        marginBottom: 12,
+        alignItems: 'center',// İç boşluğu biraz daraltıyoruz
     },
     cardSoldOut: {
         backgroundColor: COLORS.soldOut,
@@ -63,6 +65,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 8,
         fontWeight: '500',
+    },
+    rightIcon: {
+        position: 'absolute',
+        right: 15, // Ekranın sağından 15 birim boşluk (X: 370 civarına denk gelir)
+        alignSelf: 'center'
     },
     favBtn: {
         position: 'absolute',

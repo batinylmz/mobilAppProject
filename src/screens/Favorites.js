@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 import { EventContext } from '../context/EventContext';
 

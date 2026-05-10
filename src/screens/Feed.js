@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react';
-import { View, TextInput, FlatList, StyleSheet, ActivityIndicator, RefreshControl,Image } from 'react-native';
+import { View, TextInput,Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl,Image } from 'react-native';
 import EventCard from '../components/EventCard';
 import { COLORS, SIZES } from '../constants/theme';
 import { fetchEvents, searchEvents } from '../services/api';

@@ -1,78 +1,113 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-import { COLORS, SIZES } from '../constants/theme';
+import { Ionicons } from '@expo/vector-icons';
+import { useAppTheme } from '../context/ThemeContext';
+import { formatEventDate, kontenjanDurumu } from '../utils/eventFormat';
 
-const EventCard = ({ event, onPress, onFavorite, isFavorite }) => {
-    const isSoldOut = event.stock === 0;
+const thumbUri = (event) =>
+  event.thumbnail || (Array.isArray(event.images) && event.images[0]) || '';
 
-    return (
-        <TouchableOpacity
-            style={[styles.card, isSoldOut && styles.cardSoldOut]}
-            onPress={onPress}
-            disabled={isSoldOut}
-        >
-            <Image source={{ uri: event.thumbnail }} style={styles.image} />
-            <View style={styles.info}>
-                <Text style={styles.title} numberOfLines={1}>{event.title}</Text>
-                <Text style={styles.category}>{event.category}</Text>
-                <Text style={styles.stock}>
-                    {isSoldOut ? 'Kontenjan Doldu' : `Kontenjan: ${event.stock}`}
-                </Text>
-            </View>
-            <TouchableOpacity style={styles.favBtn} onPress={onFavorite}>
-                <Text style={styles.favIcon}>{isFavorite ? '♥' : '♡'}</Text>
-            </TouchableOpacity>
+const EventCard = ({ event, onPress, onFavorite, isFavorite, variant = 'feed' }) => {
+  const { colors } = useAppTheme();
+  const isSoldOut = (event.stock ?? 0) === 0;
+  const uri = thumbUri(event);
+  const dateLine = formatEventDate(event.date);
+  const quotaLine = kontenjanDurumu(event);
+  const rowIcon = colors.rowOnCard;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.card,
+        { backgroundColor: colors.cardBg },
+        isSoldOut && { backgroundColor: colors.soldOut, opacity: 0.65 },
+      ]}
+      onPress={onPress}
+      disabled={isSoldOut}
+      activeOpacity={0.9}
+    >
+      {uri ? (
+        <Image source={{ uri }} style={styles.image} />
+      ) : (
+        <View style={[styles.image, styles.ph]} />
+      )}
+      <View style={styles.info}>
+        <Text style={[styles.title, { color: colors.cardText }]} numberOfLines={2}>
+          {event.title}
+        </Text>
+        {!!dateLine && (
+          <Text style={[styles.meta, { color: colors.cardMuted }]}>{dateLine}</Text>
+        )}
+        <Text style={[styles.quota, { color: colors.cardText }]}>{quotaLine}</Text>
+      </View>
+      {variant === 'favorite' ? (
+        <View style={styles.rightCol}>
+          <TouchableOpacity style={styles.ticket} onPress={onPress} hitSlop={8}>
+            <Ionicons name="ticket-outline" size={22} color={rowIcon} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.favBtn} onPress={onFavorite} hitSlop={8}>
+            <Ionicons name="close" size={24} color={rowIcon} />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.favBtn} onPress={onFavorite}>
+          <Ionicons
+            name={isFavorite ? 'heart' : 'heart-outline'}
+            size={24}
+            color={isFavorite ? '#ffb3c6' : colors.heartEmpty}
+          />
         </TouchableOpacity>
-    );
+      )}
+    </TouchableOpacity>
+  );
 };
 
 const styles = StyleSheet.create({
-    card: {
-        flexDirection: 'row',
-        backgroundColor: COLORS.cardBackground,
-        borderRadius: SIZES.radius,
-        padding: 10,
-        marginBottom: 12,
-    },
-    cardSoldOut: {
-        backgroundColor: COLORS.soldOut,
-        opacity: 0.6,
-    },
-    image: {
-        width: 70,
-        height: 70,
-        borderRadius: 6,
-    },
-    info: {
-        flex: 1,
-        marginLeft: 12,
-        justifyContent: 'center',
-    },
-    title: {
-        color: COLORS.white,
-        fontSize: 16,
-        fontWeight: 'bold',
-    },
-    category: {
-        color: COLORS.textLight,
-        fontSize: 12,
-        marginTop: 4,
-    },
-    stock: {
-        color: COLORS.white,
-        fontSize: 12,
-        marginTop: 8,
-        fontWeight: '500',
-    },
-    favBtn: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-    },
-    favIcon: {
-        color: COLORS.white,
-        fontSize: 22,
-    }
+  card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 12,
+    gap: 10,
+  },
+  image: {
+    width: 64,
+    height: 64,
+    borderRadius: 10,
+    backgroundColor: '#333',
+  },
+  ph: { alignItems: 'center', justifyContent: 'center' },
+  info: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: 'center',
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  meta: {
+    fontSize: 12,
+    marginTop: 4,
+    opacity: 0.95,
+  },
+  quota: {
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '600',
+  },
+  rightCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ticket: { padding: 6 },
+  favBtn: {
+    padding: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
 
 export default EventCard;

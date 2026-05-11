@@ -1,4 +1,5 @@
 export const COLORS = {
+    /** Uygulama sayfa arka planı (Login hariç tüm ekranlar) */
     background: '#CCC7CD',
     cardBackground: '#6F123F',
     white: '#FFFFFF',

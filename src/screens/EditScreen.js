@@ -1,23 +1,10 @@
-import React, { useContext } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import BrandInfinity from '../components/BrandInfinity';
 import EventImage from '../components/EventImage';
 import { EventContext } from '../context/EventContext';
-
-const P = {
-  pageBg: '#ffffff',
-  text: '#111827',
-  muted: '#6b7280',
-  statBg: '#eceff3',
-  cardBg: '#6f123f',
-  cardText: '#ffffff',
-  cardMuted: 'rgba(255,255,255,0.85)',
-  primary: '#6f123f',
-  primaryText: '#ffffff',
-  accentLink: '#6f123f',
-  warning: '#f59e0b',
-  danger: '#ea580c',
-};
+import { useAppTheme } from '../context/ThemeContext';
 
 function formatDate(iso) {
   if (!iso) return '';
@@ -33,9 +20,148 @@ function formatDate(iso) {
   }
 }
 
+function buildEditStyles(c, bottomPad) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: c.background },
+    content: { padding: 16, paddingBottom: bottomPad },
+    hero: {
+      width: '100%',
+      height: 230,
+      borderRadius: 16,
+      marginBottom: 14,
+    },
+    card: {
+      backgroundColor: c.cardBg,
+      borderRadius: 16,
+      paddingVertical: 14,
+      paddingHorizontal: 14,
+    },
+    title: {
+      color: c.cardText,
+      fontSize: 22,
+      fontWeight: '700',
+      lineHeight: 28,
+    },
+    date: {
+      color: c.cardMuted,
+      fontSize: 12,
+      marginTop: 6,
+      marginBottom: 14,
+    },
+    badgesRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: 14,
+    },
+    badge: {
+      flex: 1,
+      backgroundColor: 'rgba(255,255,255,0.14)',
+      borderRadius: 10,
+      paddingVertical: 10,
+      paddingHorizontal: 8,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.28)',
+    },
+    badgeLabel: {
+      color: c.cardMuted,
+      fontSize: 12,
+      fontWeight: '600',
+    },
+    badgeValue: {
+      color: c.cardText,
+      fontSize: 14,
+      fontWeight: '700',
+      marginTop: 4,
+    },
+    descriptionTitle: {
+      color: c.cardText,
+      fontSize: 16,
+      fontWeight: '700',
+      marginBottom: 6,
+    },
+    description: {
+      color: c.cardMuted,
+      fontSize: 14,
+      lineHeight: 21,
+    },
+    favoriteBtn: {
+      marginTop: 14,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: 'center',
+      backgroundColor: c.favoriteBtnBg,
+    },
+    favoriteBtnText: {
+      color: c.accent,
+      fontSize: 14,
+      fontWeight: '700',
+    },
+    primaryBtn: {
+      marginTop: 10,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: 'center',
+      backgroundColor: c.cardBg,
+    },
+    cancelBtn: {
+      marginTop: 10,
+      borderRadius: 14,
+      paddingVertical: 14,
+      alignItems: 'center',
+      backgroundColor: c.danger,
+    },
+    primaryBtnText: {
+      color: c.cardText,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    secondaryBtn: {
+      marginTop: 10,
+      borderRadius: 14,
+      paddingVertical: 13,
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: c.secondaryBtnBorder,
+      backgroundColor: c.secondaryBtnBg,
+    },
+    secondaryBtnText: {
+      color: c.text,
+      fontSize: 15,
+      fontWeight: '700',
+    },
+    disabled: { opacity: 0.6 },
+    notFoundWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
+    notFoundTitle: {
+      color: c.text,
+      fontSize: 22,
+      fontWeight: '700',
+      marginBottom: 16,
+      textAlign: 'center',
+    },
+  });
+}
+
 function EditScreen({ route, navigation }) {
   const { eventId } = route.params;
-  const { events, favorites, registrations, isFavorite, isRegistered, addFavorite, register, unregister, updateStock } = useContext(EventContext);
+  const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const styles = useMemo(
+    () => buildEditStyles(colors, Math.max(insets.bottom, 16) + 24),
+    [colors, insets.bottom]
+  );
+
+  const {
+    events,
+    favorites,
+    registrations,
+    isFavorite,
+    isRegistered,
+    addFavorite,
+    register,
+    unregister,
+    updateStock,
+  } = useContext(EventContext);
 
   const event = [...events, ...favorites, ...registrations].find((item) => item.id === eventId);
 
@@ -53,7 +179,8 @@ function EditScreen({ route, navigation }) {
 
   if (!event) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <BrandInfinity style={{ paddingHorizontal: 16 }} />
         <View style={styles.notFoundWrap}>
           <Text style={styles.notFoundTitle}>Etkinlik bulunamadı.</Text>
           <Pressable style={styles.secondaryBtn} onPress={() => navigation.goBack()}>
@@ -72,6 +199,7 @@ function EditScreen({ route, navigation }) {
   return (
     <SafeAreaView style={styles.safe} edges={['bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <BrandInfinity style={{ paddingHorizontal: 16 }} />
         <EventImage
           uri={event.thumbnail}
           fallbacks={event.thumbnailFallbacks}
@@ -99,7 +227,9 @@ function EditScreen({ route, navigation }) {
           </View>
 
           <Text style={styles.descriptionTitle}>Açıklama</Text>
-          <Text style={styles.description}>{event.description || 'Bu etkinlik için açıklama bulunmuyor.'}</Text>
+          <Text style={styles.description}>
+            {event.description || 'Bu etkinlik için açıklama bulunmuyor.'}
+          </Text>
         </View>
 
         <Pressable style={styles.favoriteBtn} onPress={() => addFavorite(event)}>
@@ -129,119 +259,5 @@ function EditScreen({ route, navigation }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: P.pageBg },
-  content: { padding: 16, paddingBottom: 28 },
-  hero: {
-    width: '100%',
-    height: 230,
-    borderRadius: 16,
-    marginBottom: 14,
-  },
-  card: {
-    backgroundColor: P.cardBg,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-  },
-  title: {
-    color: P.cardText,
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 28,
-  },
-  date: {
-    color: P.cardMuted,
-    fontSize: 12,
-    marginTop: 6,
-    marginBottom: 14,
-  },
-  badgesRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14,
-  },
-  badge: {
-    flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.14)',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.28)',
-  },
-  badgeLabel: {
-    color: P.cardMuted,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  badgeValue: {
-    color: P.cardText,
-    fontSize: 14,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  descriptionTitle: {
-    color: P.cardText,
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  description: {
-    color: P.cardMuted,
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  favoriteBtn: {
-    marginTop: 14,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: P.statBg,
-  },
-  favoriteBtnText: {
-    color: P.accentLink,
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  primaryBtn: {
-    marginTop: 10,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: P.primary,
-  },
-  cancelBtn: {
-    marginTop: 10,
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    backgroundColor: P.danger,
-  },
-  primaryBtnText: {
-    color: P.primaryText,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  secondaryBtn: {
-    marginTop: 10,
-    borderRadius: 14,
-    paddingVertical: 13,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    backgroundColor: '#ffffff',
-  },
-  secondaryBtnText: {
-    color: P.text,
-    fontSize: 15,
-    fontWeight: '700',
-  },
-  disabled: { opacity: 0.6 },
-  notFoundWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 20 },
-  notFoundTitle: { color: P.text, fontSize: 22, fontWeight: '700', marginBottom: 16, textAlign: 'center' },
-});
 
 export default EditScreen;

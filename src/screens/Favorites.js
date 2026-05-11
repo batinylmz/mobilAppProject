@@ -1,63 +1,115 @@
-import React, { useContext } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import React, { useContext, useMemo } from 'react';
+import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import BrandInfinity from '../components/BrandInfinity';
 import EventCard from '../components/EventCard';
-import { COLORS, SIZES } from '../constants/theme';
-// Context'i import et
+import { SIZES } from '../constants/theme';
+import { useAppTheme } from '../context/ThemeContext';
 import { EventContext } from '../context/EventContext';
 
 const Favorites = () => {
-    // API kullanmıyoruz, sadece Context'teki favorileri ve silme fonksiyonunu çekiyoruz
-    const { favorites, removeFavorite } = useContext(EventContext);
+  const navigation = useNavigation();
+  const { colors } = useAppTheme();
+  const tabBarH = useBottomTabBarHeight();
+  const { favorites, removeFavorite } = useContext(EventContext);
 
-    // Eğer favori dizisi boşsa gösterilecek ekran (Empty State)
-    if (favorites.length === 0) {
-        return (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>Henüz favori eklemediniz</Text>
-            </View>
-        );
-    }
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: { flex: 1, backgroundColor: colors.background },
+        topBar: {
+          backgroundColor: colors.favTopBar,
+          paddingBottom: 10,
+        },
+        titleRow: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 8,
+          paddingVertical: 10,
+          backgroundColor: colors.background,
+        },
+        backBtn: { padding: 4, marginRight: 4 },
+        pageTitle: {
+          fontSize: 18,
+          fontWeight: '700',
+          color: colors.text,
+        },
+        listContainer: {
+          paddingHorizontal: SIZES.padding,
+          paddingBottom: tabBarH + 24,
+        },
+        emptyContainer: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        emptyCenter: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        emptyText: {
+          fontSize: 16,
+          color: colors.muted,
+        },
+      }),
+    [colors, tabBarH]
+  );
 
-    // Favoriler varsa listele
+  const Header = (
+    <View>
+      <View style={styles.topBar}>
+        <BrandInfinity style={{ paddingHorizontal: SIZES.padding, paddingTop: 8 }} />
+      </View>
+      <View style={styles.titleRow}>
+        <Pressable onPress={() => navigation.navigate('Home')} hitSlop={12} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={26} color={colors.text} />
+        </Pressable>
+        <Text style={styles.pageTitle}>Favori Etkinlikler</Text>
+      </View>
+    </View>
+  );
+
+  if (favorites.length === 0) {
     return (
-        <View style={styles.container}>
-            <FlatList
-                data={favorites}
-                keyExtractor={(item) => item.id.toString()}
-                contentContainerStyle={styles.listContainer}
-                renderItem={({ item }) => (
-                    <EventCard
-                        event={item}
-                        isFavorite={true} // Bu ekrandaki her kart zaten favoridir
-                        onPress={() => console.log('Detaya git:', item.id)}
-                        onFavorite={() => removeFavorite(item.id)} // İkona tıklanınca Context'ten siler
-                    />
-                )}
-            />
+      <SafeAreaView style={styles.emptyContainer} edges={['top']}>
+        <View style={styles.topBar}>
+          <BrandInfinity style={{ paddingHorizontal: SIZES.padding, paddingTop: 8 }} />
         </View>
+        <View style={styles.titleRow}>
+          <Pressable onPress={() => navigation.navigate('Home')} hitSlop={12} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={26} color={colors.text} />
+          </Pressable>
+          <Text style={styles.pageTitle}>Favori Etkinlikler</Text>
+        </View>
+        <View style={styles.emptyCenter}>
+          <Text style={styles.emptyText}>Henüz favori eklemediniz</Text>
+        </View>
+      </SafeAreaView>
     );
-};
+  }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COLORS.background, // İstediğin CCC7CD arkaplan
-    },
-    listContainer: {
-        paddingHorizontal: SIZES.padding,
-        paddingTop: 16,
-        paddingBottom: 20,
-    },
-    emptyContainer: {
-        flex: 1,
-        backgroundColor: COLORS.background,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#666',
-    }
-});
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <FlatList
+        data={favorites}
+        keyExtractor={(item) => String(item.id)}
+        ListHeaderComponent={Header}
+        contentContainerStyle={styles.listContainer}
+        renderItem={({ item }) => (
+          <EventCard
+            event={item}
+            isFavorite
+            variant="favorite"
+            onPress={() => navigation.navigate('Detail', { eventId: item.id })}
+            onFavorite={() => removeFavorite(item.id)}
+          />
+        )}
+      />
+    </SafeAreaView>
+  );
+};
 
 export default Favorites;

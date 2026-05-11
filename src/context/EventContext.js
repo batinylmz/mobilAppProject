@@ -1,4 +1,5 @@
 import React, { createContext, useState } from 'react';
+import { mapProductToEvent } from '../utils/eventFormat';
 
 export const EventContext = createContext();
 
@@ -9,10 +10,10 @@ export const EventProvider = ({ children }) => {
 
     // Favorilere ekleme fonksiyonu
     const addFavorite = (event) => {
+        const normalized = mapProductToEvent(event);
         setFavorites((prev) => {
-            // Eğer zaten favorilerde varsa ekleme
-            if (prev.some((fav) => fav.id === event.id)) return prev;
-            return [...prev, event];
+            if (prev.some((fav) => fav.id === normalized.id)) return prev;
+            return [...prev, normalized];
         });
     };
 
@@ -21,9 +22,29 @@ export const EventProvider = ({ children }) => {
         setFavorites((prev) => prev.filter((fav) => fav.id !== eventId));
     };
 
-    // Kişi C'nin kullanacağı kayıt ve stok mantığı (Şimdilik boş kalabilir)
-    const register = (event) => {};
-    const updateStock = (eventId, changeAmount) => {};
+    const isFavorite = (eventId) => favorites.some((f) => f.id === eventId);
+    const isRegistered = (eventId) => registrations.some((r) => r.id === eventId);
+
+    const register = (event) => {
+        if (!event || isRegistered(event.id)) return;
+        setRegistrations((prev) => [...prev, mapProductToEvent(event)]);
+    };
+
+    const unregister = (eventId) => {
+        setRegistrations((prev) => prev.filter((r) => r.id !== eventId));
+    };
+
+    const updateStock = (eventId, changeAmount) => {
+        setEvents((prev) =>
+            prev.map((e) => (e.id === eventId ? { ...e, stock: Math.max(0, (e.stock ?? 0) + changeAmount) } : e))
+        );
+        setFavorites((prev) =>
+            prev.map((e) => (e.id === eventId ? { ...e, stock: Math.max(0, (e.stock ?? 0) + changeAmount) } : e))
+        );
+        setRegistrations((prev) =>
+            prev.map((e) => (e.id === eventId ? { ...e, stock: Math.max(0, (e.stock ?? 0) + changeAmount) } : e))
+        );
+    };
 
     return (
         <EventContext.Provider
@@ -35,7 +56,10 @@ export const EventProvider = ({ children }) => {
                 addFavorite,
                 removeFavorite,
                 register,
-                updateStock
+                unregister,
+                isFavorite,
+                isRegistered,
+                updateStock,
             }}
         >
             {children}

@@ -1,16 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context'; // Çentik koruması için
 import { COLORS, SIZES } from '../constants/theme';
 
-/** Üst bordo şerit + EVENTLOOP logosu (tasarım) */
 export default function AppHeader() {
     return (
-        <View style={styles.wrap}>
-            <View style={styles.bar}>
-                <Text style={styles.infinity}>∞</Text>
-                <Text style={styles.brand}>EVENTLOOP</Text>
+        // edges={['top']} sadece üstten boşluk bırakır, alt tasarımı bozmaz
+        <SafeAreaView edges={['top']} style={{ backgroundColor: FIGMA_COLORS.background }}>
+            <View style={styles.wrap}>
+                <View style={styles.bar}>
+                    <Text style={styles.infinity}>∞</Text>
+                    <Text style={styles.brand}>EVENTLOOP</Text>
+                </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 }
 

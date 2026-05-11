@@ -1,3 +1,4 @@
+import AppHeader from './src/components/AppHeader';
 import React from 'react';
 import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -21,6 +22,7 @@ const App = () => {
             <NavigationContainer>
                 <Tab.Navigator
                     screenOptions={({ route }) => ({
+                        header: () => <AppHeader />,
                         tabBarIcon: ({ focused, color, size }) => {
                             let iconName;
 
@@ -42,7 +44,7 @@ const App = () => {
                             height: 60,
                             paddingBottom: 8,
                         },
-                        headerShown: false, // Kendi özel header'ımızı Feed.js içinde yaptık
+                        headerShown: true, // Kendi özel header'ımızı Feed.js içinde yaptık
                     })}
                 >
                     <Tab.Screen
@@ -55,6 +57,8 @@ const App = () => {
                         component={Favorites}
                         options={{ title: 'Favorilerim' }}
                     />
+                    <Tab.Screen name="Profile" component={ProfileScreen} />
+                    <Tab.Screen name="Settings" component={SettingsScreen} />
                 </Tab.Navigator>
             </NavigationContainer>
         </EventProvider>
